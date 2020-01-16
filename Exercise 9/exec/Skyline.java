@@ -25,6 +25,7 @@ public class Skyline {
      *      queryNN(Point p, Rectangle R), which returns the nearest Point p' to Point p, which is contained in Rectangle R
      *                                          (or null if there is none)
      *      queryOverlap(Rectangle R), which returns all Points in the tree that are contained in R.
+     * AUTHOR: PRIOM BISWAS, MD NABID IMTEAJ
      */
     public static void main (String[] args) {
 
@@ -118,6 +119,10 @@ public class Skyline {
         //
         // Your code here!
         //
+        // System.out.println("Inside calculateSkyline ------------------------ " + tree.points.size());
+        // Scanner in = new Scanner(System.in);
+        // System.out.println(">>> WAITING... ");
+        // in.nextLine();
         Set<Point> ret = new HashSet<Point>();
 
         Point INF = new Point(9999, 9999);
@@ -125,23 +130,44 @@ public class Skyline {
         Point c = tree.queryNN(origin); // first point
 
         // return if there is no skyline points
-        if(c == null) return ret;
+        if(c == null) return null;
         ret.add(c);
+
+        //System.out.println("Closest: " + c.toString());
 
         // exclude all (inclusive) points in this partition/w.r.t this skyline point
         Rectange r4 = new Rectange(c.x, c.y, INF.x, INF.y);
-        for(Point p: tree.points) {
-            if(r4.containsInner(p)) {
-                tree.points.remove(p);
-            }
-        }
+        // System.out.print("R4(before)[" + tree.points.size() + "]");
+        // for(Point p: tree.points) System.out.print(p.toString() + ", ");
+        // System.out.println();
+
+        tree.points = tree.removePoints(r4);
+        tree.points.remove(c);
+        
+        // System.out.print("R4(after)[" + tree.points.size() + "]");
+        // for(Point p: tree.points) System.out.print(p.toString() + ", ");
+        // System.out.println();
 
         // now devide into partitions
+        // R3 R4
+        // R1 R2
         // excluded partition
         Rectange r1 = new Rectange(origin.x, origin.y, c.x-origin.x, c.y-origin.y);
+
         // inclusive partion
         Rectange r2 = new Rectange(c.x, origin.y, INF.x, c.y);
+        // System.out.println("R2 (before) " + tree.points.size());
+        Partition p2 = new Partition(tree.queryOverlap(r2));
+        if(p2.fakeRTree.points.size() > 0) ret.addAll(calculateSkyline(p2.fakeRTree));
+        tree.points = tree.removePoints(r2);
+        // System.out.println("R2 (after) " + tree.points.size());
+
         Rectange r3 = new Rectange(origin.x, c.y, c.x, INF.y);
+        // System.out.println("R3 (before) " + tree.points.size());
+        Partition p3 = new Partition(tree.queryOverlap(r3));
+        if(p3.fakeRTree.points.size() > 0) ret.addAll(calculateSkyline(p3.fakeRTree));
+        tree.points = tree.removePoints(r3);
+        // System.out.println("R3 (after) " + tree.points.size());
 
         return ret;
     }
@@ -159,8 +185,9 @@ public class Skyline {
     public static class Partition {
         FakeRTree fakeRTree;
 
-        public Partition() {
+        public Partition(Set<Point> points) {
             this.fakeRTree = new FakeRTree();
+            this.fakeRTree.points.addAll(points);
         }
 
         public FakeRTree getRTree() {
@@ -329,6 +356,24 @@ public class Skyline {
                 if (q.contains(p)) ret.add(p);
             }
             return ret;
+        }
+
+        Set<Point> queryOverlapInner(Rectange q) {
+            HashSet<Point> ret = new HashSet<Point>();
+            for (Point p: points) {
+                if (q.containsInner(p)) ret.add(p);
+            }
+            return ret;
+        }
+
+        Set<Point> removePoints(Rectange q) {
+            // System.out.println("Rectangle: " + q.toString());
+            Set<Point> overlap = queryOverlap(q);
+            // System.out.print("overlap: "); for(Point p: overlap) System.out.print(p.toString() + ", "); System.out.println();
+            Set<Point> differenceSet = points;
+            differenceSet.removeAll(overlap);
+            // System.out.print("differences: "); for(Point p: differenceSet) System.out.print(p.toString() + ", "); System.out.println();
+            return differenceSet;
         }
 
     }
