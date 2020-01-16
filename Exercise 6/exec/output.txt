@@ -1,0 +1,35 @@
+============================================
+Reading file: file1.txt
+The quick brown fox jumps over the lazy dog
+Reading file: file2.txt
+The small brown fox jumps over the fat dog
+============================================
+Calculating Jaccard similarity:
+0.6363636363636364
+============================================
+Calculating similarity for k = 1 hash functions:
+0.0
+Calculating similarity for k = 2 hash functions:
+1.0
+Calculating similarity for k = 3 hash functions:
+0.3333333333333333
+Calculating similarity for k = 4 hash functions:
+0.75
+Calculating similarity for k = 5 hash functions:
+0.8
+Calculating similarity for k = 6 hash functions:
+1.0
+============================================
+Calculating similarity for k = 1 hash values:
+1.0
+Calculating similarity for k = 2 hash values:
+1.0
+Calculating similarity for k = 3 hash values:
+0.0
+Calculating similarity for k = 4 hash values:
+1.0
+Calculating similarity for k = 5 hash values:
+1.0
+Calculating similarity for k = 6 hash values:
+0.6363636363636364
+============================================

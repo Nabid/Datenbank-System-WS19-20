@@ -1,0 +1,30 @@
+KDTree (leftNode, rightNode)
+Split (value, dimention): implements KDTree
+Point (v1, v2, ...): implements KDTree
+
+insert_point(KDTree T, List<of>Nodes):
+    
+    // find the one with the largest variance
+    var max_variance_dimention
+    for all dimentions d:
+        sort points by dimention d
+        get two median points P1 and P2
+        get variance of P1 and P2:
+            avg = (P1.d.value + P2.d.value) / 2
+            variance = P1.d.value ~ avg
+        if variance is maximum:
+            update max_variance_dimention with current dimention
+    
+    // find split point
+    sort by max_variance_dimention
+    get two median points P1 and P2
+    split_value = (P1.max_variance_dimention.value + P1.max_variance_dimention.value) / 2
+
+    if T is null:
+        T = new Split(split_value, max_variance_dimention)
+    else if split_value <= T.leftNode.value:
+        T.leftNode = insert_point(T.leftNode, List<of>Nodes that are lower than split_value in max_variance_dimention)
+    else if split_value > T.rightNode.value:
+        T.rightNode = insert_point(T.rightNode, List<of>Nodes that are larger than split_value in max_variance_dimention)
+    
+    return T

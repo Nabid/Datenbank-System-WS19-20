@@ -1,0 +1,15 @@
+1 b
+For the given points and queries, we found the results of KNN and KNNZCurve differs not that much.
+But we strongly believe that completely depends on the given set of number of points and queries.
+The difference we observed is due to the distance function (distribution of points in Cartesian plane and in Z Curve), for KNN we considered Eucledean distance 
+and for KNNZCurve we considered Z value from byte string of x and y.
+
+3 a
+For distance on a plane between two vector points, we consider the shortest distance between them.
+
+The Manhattan or Taxicab distance d, between two vectors p and q in an n-dimensional real vector space with
+fixed Cartesian coordinate system, is the sum of the lengths of the projections of the line segment between the points onto the coordinate axes.
+[1]
+https://en.wikipedia.org/wiki/Taxicab_geometry
+
+
