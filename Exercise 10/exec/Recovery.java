@@ -27,6 +27,8 @@ public class Recovery {
      *  - redo(Log, Database): Perform all redo operations (as shown in the lecture) on the mock Database
      *  - undo(Log, Database): Undo all operations of the loser transactions on the Database and write CLRs to the log.
      *
+     * 
+     * AUTHOR: PRIOM BISWAS and MD NABID IMTEAJ
      */
     public static void main(String[] args) {
 
@@ -95,8 +97,18 @@ public class Recovery {
         //
         // Your code here!
         //
-        
-        return new HashSet<>();
+        List<String> tidList =  log.getTids();
+        Set<String> res = new HashSet<String>();
+
+        for (String tid : tidList) {
+            List<Entry> entries = log.getEntriesByTid(tid);
+            boolean isCommit = false;
+            for (Entry entry : entries) {
+                isCommit = entry.isCOMMIT();
+            }
+            if(isCommit == false) res.add(tid);
+        }
+        return res;
     }
 
     /**
@@ -108,6 +120,13 @@ public class Recovery {
         //
         // Your code here!
         //
+        List<Entry> entries =  log.getEntries();
+
+        for (Entry entry : entries) {
+            if(entry.getRedo() != "") {
+                db.execute(entry.getRedo());
+            }
+        }
     }
 
     /**
@@ -119,6 +138,28 @@ public class Recovery {
         //
         // Your code here!
         //
+        Set<String> loosers = getLoserTransactions(log);
+
+        for (String looser : loosers) {
+            List<Entry> entries = log.getEntriesByTid(looser);
+            Collections.reverse(entries);
+            String prevLsn = "";
+            for(Entry e : entries) {
+                String lsnPrime = e.getLsn() + "'";
+                if(prevLsn == "") {
+                    prevLsn = e.getLsn();
+                }
+                try {
+                    log.addCLR(lsnPrime, e.getTid(), e.getPage(), e.getUndo(), prevLsn, e.getPrevLsn() == "" ? "0" : e.getPrevLsn());
+                } catch (Exception ex) {
+                    //TODO: handle exception
+                }
+                if(e.getUndo() != "") {
+                    db.execute(e.getUndo());
+                }
+                prevLsn = lsnPrime;
+            }
+        }
     }
 
     
@@ -170,7 +211,7 @@ class Log {
      * @return The log entry or an exception
      */
     public Entry getEntryByLSN(String lsn) {
-        return entries.stream().filter(x -> x.getLsn() == lsn).findFirst().orElseThrow();
+        return entries.stream().filter(x -> x.getLsn() == lsn).findFirst().orElseThrow(null);
     }
 
     /**
@@ -258,10 +299,12 @@ class Log {
         }
     }
 
-    /**
+}
+
+/**
      * A single log entry
      */
-    public class Entry{
+    class Entry{
         Entry(String lsn, String tid, String page, String redo, String undo, String prevLsn,
                 String undoNextLsn) {
             this.lsn = lsn;
@@ -350,5 +393,3 @@ class Log {
             }
         }
     }
-
-}

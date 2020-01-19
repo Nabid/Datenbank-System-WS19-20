@@ -1,0 +1,14 @@
+cd "/Users/nabid/Documents/MS TUK/Winter_19-20/Database System/Exercise/Exercise 10/exec" ; /Library/Java/JavaVirtualMachines/jdk1.8.0_144.jdk/Contents/Home/bin/java -agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:54566 -Dfile.encoding=UTF-8 -cp "/Users/nabid/Library/Application Support/Code/User/workspaceStorage/6ff3f04169006a1c4a445d34afb09355/redhat.java/jdt_ws/exec_67744d7c/bin" Recovery 
+--------- Test 1 ---------
+--- Input log: ---
+[#1, T1, BOT, , , ]
+[#2, T2, BOT, , , ]
+[#3, T1, A, A-=50, A+=50, #1]
+[#4, T2, C, C+=100, C-=100, #2]
+[#5, T1, B, B+=50, B-=50, #3]
+[#6, T1, COMMIT, , , #5]
+[#7, T2, A, A-=100, A+=100, #4]
+--- Tests: ---
+Loser Transactions: [T2]
+Expected Loser Transactions: [T2]
+Test 1 successful
