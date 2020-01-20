@@ -1,0 +1,13 @@
+1.
+
+"Hash Join  (cost=65705.00..380985.58 rows=6001263 width=12) (actual time=434.388..4142.813 rows=6001215 loops=1)"
+"  Hash Cond: (lineitem.l_orderkey = orders.o_orderkey)"
+"  ->  Seq Scan on lineitem  (cost=0.00..172515.63 rows=6001263 width=8) (actual time=0.041..1257.640 rows=6001215 loops=1)"
+"  ->  Hash  (cost=41095.00..41095.00 rows=1500000 width=8) (actual time=428.308..428.308 rows=1500000 loops=1)"
+"        Buckets: 131072  Batches: 32  Memory Usage: 2862kB"
+"        ->  Seq Scan on orders  (cost=0.00..41095.00 rows=1500000 width=8) (actual time=0.066..234.428 rows=1500000 loops=1)"
+"Planning Time: 0.098 ms"
+"Execution Time: 4259.387 ms"
+
+
+
