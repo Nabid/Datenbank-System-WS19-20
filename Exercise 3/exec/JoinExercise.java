@@ -24,6 +24,14 @@ import java.util.HashMap;
  * For the exercise write the code of the methods nestedLoopJoin and hashJoin.
  *
  * You may have to adapt the connection code of the class DBConnector for your database.
+ * =====================================================================================
+ * Author: Priom Biswas and Md Nabid Imteaj
+ * Date: 18 November 12:05
+ * Environment:
+ *      java 13.0.1 2019-10-15
+ *      Java(TM) SE Runtime Environment (build 13.0.1+9)
+ *      Java HotSpot(TM) 64-Bit Server VM (build 13.0.1+9, mixed mode, sharing)
+ * ======================================================================================
  */
 public class JoinExercise {
     public static void main(String... args) throws SQLException {
@@ -94,6 +102,8 @@ public class JoinExercise {
                 }
             }
         }
+
+        //return joinResult;
     }
 
     /**
@@ -105,7 +115,6 @@ public class JoinExercise {
         //////////////
         // Your code//
         //////////////
-
         Map<Integer, Date> _lineitemHashMap = new HashMap<Integer, Date>();
 
         // HASH PART
@@ -123,6 +132,7 @@ public class JoinExercise {
             }
         }
     }
+
 }
 
 abstract class OrderkeyTuple implements Comparable<OrderkeyTuple> {
@@ -206,14 +216,13 @@ class JoinResultTuple extends OrderkeyTuple {
 class DBConnector {
     private static final String HOST = "localhost";
     private static final short PORT = 5432;
-    //private static final short PORT = 49442;
     private static final String USER = "postgres";
-    private static final String PASSWORD = "1234";
+    private static final String PASSWORD = "postgres";
     private static final String DATABASE = "tpch";
 
     private static Connection conn = null;
 
-    private static final int ORDERKEY_BOUND = 50_000;
+    private static final int ORDERKEY_BOUND = 50000;
 
     {
         try {
