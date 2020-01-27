@@ -1,0 +1,6 @@
+bash-3.2$ 
+==== S1 ====
+s1 = [w_1(x), r_2(x), w_3(y), r_1(y), r_3(z), w_1(x), c_1, w_2(y), c_2, w_3(y), c_3]
+Immediate restart = [wl_1(x), w_1(x), rl_2(x)*, wl_3(y), w_3(y), rl_1(y)*, rl_3(z), r_3(z), w_3(y), c_3, rl_1(y), r_1(y), w_1(x), c_1, wl_2(y), w_2(y), c_2, c_3, wu_3(y), ru_3(z), wu_1(x), ru_1(y), wu_2(y)]
+Wait die = [wl_1(x), w_1(x), rl_2(x)*, wl_3(y), w_3(y), rl_1(y)*, rl_3(z), r_3(z), w_1(x), w_3(y), c_3, wl_2(y), w_2(y), c_2, rl_1(y), r_1(y), c_1, c_3, wu_3(y), ru_3(z), wu_2(y), wu_1(x), ru_1(y)]
+Wound wait = [wl_1(x), w_1(x), rl_2(x)*, wl_3(y), w_3(y), rl_1(y)*, rl_3(z), r_3(z), wl_2(y)*, w_3(y), c_3, w_1(x), c_1, wl_2(y), w_2(y), c_2, rl_2(x), r_2(x), c_3, wu_3(y), ru_3(z), wul_1(x)*, wu_2(y)]

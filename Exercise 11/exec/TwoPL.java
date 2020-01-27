@@ -26,7 +26,7 @@ public class TwoPL {
     checkS1();
   }
 
-  private static void checkS1(){
+  private static void checkS1() {
     History s1 = new History();
     s1.addOperation(new Write(1, "x"));
     s1.addOperation(new Read(2, "x"));
@@ -40,21 +40,25 @@ public class TwoPL {
     s1.addOperation(new Write(3, "y"));
     s1.addOperation(new Commit(3));
 
+    History sres1 = new History(); sres1.addOperation(s1.getOperations());
+    History sres2 = new History(); sres2.addOperation(s1.getOperations());
+    History sres3 = new History(); sres3.addOperation(s1.getOperations());
+
     System.out.println("==== S1 ====");
     System.out.println("s1 = " + s1.toString());
-    System.out.println("Immediate restart = " + immediateRestart(s1).toString());
-    System.out.println("Wait die = " +  wait_die(s1).toString());
-    System.out.println("Wound wait = " +  wound_wait(s1).toString());
+    System.out.println("Immediate restart = " + immediateRestart(sres1).toString());
+    // System.out.println("==== S1 ====");
+    // System.out.println("s1 = " + sres1.toString());
+    System.out.println("Wait die = " +  wait_die(sres2).toString());
+    // System.out.println("==== S1 ====");
+    // System.out.println("s1 = " + sres2.toString());
+    System.out.println("Wound wait = " +  wound_wait(sres3).toString());
+    // System.out.println("==== S1 ====");
+    // System.out.println("s1 = " + sres3.toString());
   }
 
 
   public static History immediateRestart(History s){
-    return new History();
-  }
-
-  public static History wait_die(History s){
-    History schedule = new History();
-
     for (int i=0; i<s.getOperations().size(); i++) {
       Operation op = s.getOperations().get(i);
       Operation newScheduledOperation = null;
@@ -76,42 +80,157 @@ public class TwoPL {
       // COMMIT OPERATION
       if(type.equals("c")) {
         // add unlock operation for current transaction and remove it from lock list
-        schedule.addUnlocksToSchedule(op);
+        s.addUnlocksToSchedule(op);
         // for each unlock add operations in current position from wait list
         s.addWaitsToCurrentPosition(i);
         s.addRestartsToCurrentPosition(i);
         // add commit to schedule
-        schedule.addOperation(new Commit(op.getTransaction()));
+        s.addSchedule(new Commit(op.getTransaction()));
       } else {
         // READ OR WRITE OPERATION
-        boolean islocked = schedule.isPageLockedByOtherTransaction(op);
+        boolean islocked = s.isPageLockedByOtherTransaction(op);
         if(!islocked) {
           if(type.equals("w")) newScheduledOperation = new WriteLock(op.getTransaction(), op.getPage());
           else if(type.equals("r")) newScheduledOperation = new ReadLock(op.getTransaction(), op.getPage());
-          schedule.addLock(newScheduledOperation);
-          schedule.addOperation(newScheduledOperation);
-          schedule.addOperation(op);
+          if(!s.isPageLockedBySameTransaction(op)) {
+            s.addLock(newScheduledOperation);
+            s.addSchedule(newScheduledOperation);
+          }
+          s.addSchedule(op);
         } else {
-          boolean islockedByOlderOp = schedule.isPageLockedByOtherOlderTransaction(op);
+          s.addSchedule(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
+          s.addRestart(op);
+        }
+      }
+    }
+
+    History result = new History();
+    result.addOperation(s.getSchedule());
+    return result;
+  }
+
+  public static History wait_die(History s){
+    for (int i=0; i<s.getOperations().size(); i++) {
+      Operation op = s.getOperations().get(i);
+      Operation newScheduledOperation = null;
+
+      String type = op.getOperationType();
+
+      // check if transaction in restart
+      if(s.isTransactionInRestart(op)) {
+        s.addRestart(op);
+        continue;
+      }
+
+      // check if transaction in wait
+      if(s.isTransactionInWait(op)) {
+        s.addWait(op);
+        continue;
+      }
+
+      // COMMIT OPERATION
+      if(type.equals("c")) {
+        // add unlock operation for current transaction and remove it from lock list
+        s.addUnlocksToSchedule(op);
+        // for each unlock add operations in current position from wait list
+        s.addWaitsToCurrentPosition(i);
+        s.addRestartsToCurrentPosition(i);
+        // add commit to schedule
+        s.addSchedule(new Commit(op.getTransaction()));
+      } else {
+        // READ OR WRITE OPERATION
+        boolean islocked = s.isPageLockedByOtherTransaction(op);
+        if(!islocked) {
+          if(type.equals("w")) newScheduledOperation = new WriteLock(op.getTransaction(), op.getPage());
+          else if(type.equals("r")) newScheduledOperation = new ReadLock(op.getTransaction(), op.getPage());
+          if(!s.isPageLockedBySameTransaction(op)) {
+            s.addLock(newScheduledOperation);
+            s.addSchedule(newScheduledOperation);
+          }
+          s.addSchedule(op);
+        } else {
+          boolean islockedByOlderOp = s.isPageLockedByOtherOlderTransaction(op);
           if(islockedByOlderOp) {
             // current op is young -> restart
-            schedule.addOperation(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
+            s.addSchedule(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
             // add also in restart list
             s.addRestart(op);
-            // send current operation to the end of input schedule
-            s.addOperation(op);
+            // send current operation to the end of input operation
+            //s.addOperation(op);
           } else {
+            s.addSchedule(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
             // current op is old -> wait
             s.addWait(op);
           }
         }
       }
     }
-    return schedule;
+
+    History result = new History();
+    result.addOperation(s.getSchedule());
+    return result;
   }
 
   public static History wound_wait(History s){
-    return new History();
+    for (int i=0; i<s.getOperations().size(); i++) {
+      Operation op = s.getOperations().get(i);
+      Operation newScheduledOperation = null;
+
+      String type = op.getOperationType();
+
+      // check if transaction in restart
+      if(s.isTransactionInRestart(op)) {
+        s.addRestart(op);
+        continue;
+      }
+
+      // check if transaction in wait
+      if(s.isTransactionInWait(op)) {
+        s.addWait(op);
+        continue;
+      }
+
+      // COMMIT OPERATION
+      if(type.equals("c")) {
+        // add unlock operation for current transaction and remove it from lock list
+        s.addUnlocksToSchedule(op);
+        // for each unlock add operations in current position from wait list
+        s.addWaitsToCurrentPosition(i);
+        s.addRestartsToCurrentPosition(i);
+        // add commit to schedule
+        s.addSchedule(new Commit(op.getTransaction()));
+      } else {
+        // READ OR WRITE OPERATION
+        boolean islocked = s.isPageLockedByOtherTransaction(op);
+        if(!islocked) {
+          if(type.equals("w")) newScheduledOperation = new WriteLock(op.getTransaction(), op.getPage());
+          else if(type.equals("r")) newScheduledOperation = new ReadLock(op.getTransaction(), op.getPage());
+          if(!s.isPageLockedBySameTransaction(op)) {
+            s.addLock(newScheduledOperation);
+            s.addSchedule(newScheduledOperation);
+          }
+          s.addSchedule(op);
+        } else {
+          boolean islockedByOlderOp = s.isPageLockedByOtherOlderTransaction(op);
+          if(!islockedByOlderOp) {
+            // current op is young -> restart
+            s.addSchedule(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
+            // add also in restart list
+            s.addRestart(op);
+            // send current operation to the end of input operation
+            //s.addOperation(op);
+          } else {
+            s.addSchedule(new RequestedLock(op.getTransaction(), op.getPage(), op.getOperationType()));
+            // current op is old -> wait
+            s.addWait(op);
+          }
+        }
+      }
+    }
+
+    History result = new History();
+    result.addOperation(s.getSchedule());
+    return result;
   }
 
 }
@@ -128,6 +247,7 @@ class History {
   private ArrayList<Operation> locks;
   private ArrayList<Operation> waits;
   private ArrayList<Operation> restarts;
+  private ArrayList<Operation> schedule;
 
   /**
    * Creates a new empty history
@@ -137,6 +257,19 @@ class History {
     locks = new ArrayList<>();
     waits = new ArrayList<>();
     restarts = new ArrayList<>();
+    schedule = new ArrayList<>();
+  }
+
+  public History(History h){
+    operations = (ArrayList<Operation>) h.getOperations();
+    locks = new ArrayList<>();
+    waits = new ArrayList<>();
+    restarts = new ArrayList<>();
+    schedule = new ArrayList<>();
+  }
+
+  public static History newInstance(History h) {
+    return new History(h);
   }
 
   /**
@@ -151,14 +284,29 @@ class History {
    * Adds a new operation to the history
    * @param op the operation to add
    */
+  public void addOperation(List<Operation> op){
+    this.operations.addAll(op);
+  }
+
   public void addOperation(Operation op){
     this.operations.add(op);
+  }
+
+  public void addSchedule(Operation op){
+    if(op == null) return;
+    this.schedule.add(op);
+  }
+
+  public List<Operation> getSchedule(){
+    return this.schedule;
   }
 
   public void addLock(Operation op){
     // add a lock only if it is not already locked by same transaction
     boolean exists = false;
+    if(op == null) return;
     for (Operation lock : locks) {
+      if(lock == null) continue;
       if(lock.getPage() == op.getPage() 
           && lock.getTransaction() == op.getTransaction()) {
             exists = true;
@@ -181,8 +329,20 @@ class History {
     return operations.toString();
   }
 
+  public boolean isPageLockedBySameTransaction(Operation o) {
+    for (Operation tmpOperation : locks) {
+      if(tmpOperation == null) continue;
+      if(tmpOperation.getPage() == o.getPage() 
+          && tmpOperation.getTransaction() == o.getTransaction()) { 
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean isPageLockedByOtherTransaction(Operation o) {
     for (Operation tmpOperation : locks) {
+      if(tmpOperation == null) continue;
       if(tmpOperation.getPage() == o.getPage() 
           && tmpOperation.getTransaction() != o.getTransaction()) { 
         return true;
@@ -193,6 +353,7 @@ class History {
 
   public boolean isPageLockedByOtherOlderTransaction(Operation o) {
     for (Operation lock : locks) {
+      if(lock == null) continue;
       if(lock.getPage() == o.getPage()
           && lock.getTransaction() < o.getTransaction()) { 
         return true;
@@ -204,6 +365,7 @@ class History {
   public void addUnlocksToSchedule(Operation o) {
     ArrayList<Operation> tmpList = (ArrayList<Operation>) locks.clone();
     for (Operation lock : locks) {
+      if(lock == null) continue;
       if(lock.getTransaction() == o.getTransaction()) {
         String str = lock.getOperationType();
         Operation operation = null;
@@ -251,7 +413,10 @@ class History {
   public boolean isTransactionInWait(Operation op) {
     boolean exists = false;
     for (Operation wait : waits) {
-      if(wait.getTransaction() == op.getTransaction()) {
+      if(!op.getOperationType().equals("c") && wait.getTransaction() == op.getTransaction() && wait.getPage() == op.getPage()) {
+        exists = true;
+        break;
+      } else if(op.getOperationType().equals("c") && wait.getTransaction() == op.getTransaction()) {
         exists = true;
         break;
       }
