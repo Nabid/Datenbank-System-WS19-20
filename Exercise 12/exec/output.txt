@@ -1,0 +1,14 @@
+---PersonTable---
+[FID=1, dob=12.11.89, name=Hoffman, zip=66133]
+[FID=2, dob=04.01.93, name=Mayer, zip=67663]
+[FID=3, dob=11.11.89, name=Hofmann, zip=66123]
+[FID=4, dob=01.04.1993, name=Mayer, zip=67653]
+[FID=5, dob=01.04.1993, name=Meyer, zip=67663]
+-----------------
+
+---ProbabilisticPersonTable---
+[dobs={11.11.89=0.4, 12.11.89=0.6}, fids=[1, 3], names={Hoffman=0.6, Hofmann=0.4}, zips={66123=0.4, 66133=0.6}]
+[dobs={01.04.1993=0.7, 04.01.93=0.3}, fids=[2, 4, 5], names={Meyer=0.5, Mayer=0.5}, zips={67663=0.8, 67653=0.2}]
+-----------------
+
+All checks passed, solution probably correct.
